@@ -1,9 +1,13 @@
 import random 
 from tkinter import *
-from tkinter import ttk
+from pathlib import Path
 
-def Train(learningrate = 0.1, epochs = 5000, path = "colorblinddata.csv"): #literally pulled outa my ass i have no clue if theyre too big or too small
+BASE_DIR = Path(__file__).resolve().parent
+
+def Train(learningrate = 0.1, epochs = 500, path = None): #literally pulled outa my ass i have no clue if theyre too big or too small
     print("Training...") #so i know if i actually ran the damn thing
+    if path is None:
+        path = BASE_DIR / "colorblinddata.csv"
     with open(path, "r") as data:
         trainingdata = []
         for line in data:
@@ -29,7 +33,7 @@ def Train(learningrate = 0.1, epochs = 5000, path = "colorblinddata.csv"): #lite
             for i in range(3):
                 weights[i] += learningrate * error * inputs[i]
             bias += learningrate * error
-    print(weights, bias)
+    print(f"Returned with weights: {weights}, and bias: {bias}")
     return(weights, bias)
 
 
@@ -49,32 +53,32 @@ trainTup = Train()
 neuronsArr = [random.randbytes(1).hex() for i in range(3)] #initial random hexadec
 hexColor = "#"+neuronsArr[0]+neuronsArr[1]+neuronsArr[2] #initial hexcolorcode
 
-def IsPurp(): #when Yes is clicked
+def IsPurple(): #when Yes is clicked
+    CheckAndRegen(True)
+
+def NotPurple(): #when No is Clicked
+    CheckAndRegen(False)
+
+def CheckAndRegen(isPurple):
     global neuronsArr, hexColor
-    with open("purps.csv",'a') as file:
-        file.write(f"\n{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, 1")
-    print("yuh")
-    if CheckIt(hexColor,trainTup[0],trainTup[1]):
-        print("hell yeah clanka")
+    with open(BASE_DIR / "colorblinddata.csv",'a') as file:
+        file.write(f"{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, {int(isPurple)}\n")
+    if isPurple:
+        print("yuh")
+        if CheckIt(hexColor,trainTup[0],trainTup[1]):
+            print("clanka agree")
+        else:
+            print("clanka thought no")
     else:
-        print("clanka think not")
+        print("nuh")
+        if CheckIt(hexColor,trainTup[0],trainTup[1]):
+            print("clanka thought yes")
+        else:
+            print("clanka agree")   
+    
     neuronsArr = [random.randbytes(1).hex() for i in range(3)]
     hexColor = "#"+neuronsArr[0]+neuronsArr[1]+neuronsArr[2]
-    canvas.itemconfigure("rect", fill=hexColor)
-
-
-def NotPurp(): #when No is Clicked
-    global neuronsArr, hexColor
-    with open("purps.csv",'a') as file:
-        file.write(f"\n{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, 0")
-    print("nuh")
-    if CheckIt(hexColor,trainTup[0],trainTup[1]):
-        print("clanka think yes")
-    else:
-        print("clanka agree")
-    neuronsArr = [random.randbytes(1).hex() for i in range(3)]
-    hexColor = "#"+neuronsArr[0]+neuronsArr[1]+neuronsArr[2]
-    canvas.itemconfigure("rect", fill=hexColor)
+    canvas.itemconfigure("rect", fill=hexColor)   
 
 
 root = Tk() #window setup
@@ -86,8 +90,8 @@ canvas.grid(row=0, column=0)
 canvas.create_rectangle(0, 0, 256, 128, fill=hexColor, tags="rect")
 buttonFrame = Frame(mainframe)
 buttonFrame.grid(row=1, column=0)
-bYes = Button(buttonFrame, text="Yes", command=IsPurp)
-bNo = Button(buttonFrame, text="No", command=NotPurp)
+bYes = Button(buttonFrame, text="Yes", command=IsPurple)
+bNo = Button(buttonFrame, text="No", command=NotPurple)
 bYes.grid(row=0, column=0)
 bNo.grid(row=0, column=1)
 
