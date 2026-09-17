@@ -4,7 +4,7 @@ from pathlib import Path
 
 neuronsArr = [random.randbytes(1).hex() for i in range(3)] #initial random hexadec
 hexColor = "#"+neuronsArr[0]+neuronsArr[1]+neuronsArr[2] #initial hexcolorcode
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def IsPurple(): #when Yes is clicked
@@ -16,7 +16,7 @@ def NotPurple(): #when No is Clicked
 
 def CheckAndRegen(isPurple):
     global neuronsArr, hexColor
-    with open(BASE_DIR / "colorblinddata.csv",'a') as file:
+    with open(BASE_DIR / "data" /"colorblinddata.csv",'a') as file:
         file.write(f"{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, {int(isPurple)}\n")
     if isPurple:
         print("yuh")

@@ -3,10 +3,10 @@ from tkinter import *
 from pathlib import Path
 
 #paths
-BASE_DIR = Path(__file__).resolve().parent
-splashpath = BASE_DIR / "perceptpurple.png"
-trainpath = BASE_DIR /  "train.png"
-comppath = BASE_DIR / "compare.png"
+BASE_DIR = Path(__file__).resolve().parent.parent
+splashpath = BASE_DIR / "imgassets" / "perceptpurple.png"
+trainpath = BASE_DIR / "imgassets" /  "train.png"
+comppath = BASE_DIR / "imgassets" / "compare.png"
 
 #initial random color setup
 neuronsArr = [random.randbytes(1).hex() for i in range(3)] #initial random hexadec
@@ -63,7 +63,7 @@ def Training(hexColor):
 
     def CheckAndRegen(isPurple):
         global neuronsArr, hexColor
-        with open(BASE_DIR / "colorblinddata.csv",'a') as file:
+        with open(BASE_DIR / "data" /"colorblinddata.csv",'a') as file:
             file.write(f"{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, {int(isPurple)}\n")
         if isPurple:
             print("yuh")

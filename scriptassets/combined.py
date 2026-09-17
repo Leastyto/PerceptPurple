@@ -2,12 +2,12 @@ import random
 from tkinter import *
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 def Train(learningrate = 0.1, epochs = 500, path = None): #literally pulled outa my ass i have no clue if theyre too big or too small
     print("Training...") #so i know if i actually ran the damn thing
     if path is None:
-        path = BASE_DIR / "colorblinddata.csv"
+        path = BASE_DIR / "data" /  "colorblinddata.csv"
     with open(path, "r") as data:
         trainingdata = []
         for line in data:
@@ -61,7 +61,7 @@ def NotPurple(): #when No is Clicked
 
 def CheckAndRegen(isPurple):
     global neuronsArr, hexColor
-    with open(BASE_DIR / "colorblinddata.csv",'a') as file:
+    with open(BASE_DIR / "data" / "colorblinddata.csv",'a') as file:
         file.write(f"{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, {int(isPurple)}\n")
     if isPurple:
         print("yuh")
