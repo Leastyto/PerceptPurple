@@ -7,16 +7,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 splashpath = BASE_DIR / "imgassets" / "perceptpurple.png"
 trainpath = BASE_DIR / "imgassets" /  "train.png"
 comppath = BASE_DIR / "imgassets" / "compare.png"
+yespath = BASE_DIR / "imgassets" / "yes.png"
+nopath = BASE_DIR / "imgassets" / "no.png"
+
 
 #initial random color setup
 neuronsArr = [random.randbytes(1).hex() for i in range(3)] #initial random hexadec
 hexColor = "#"+neuronsArr[0]+neuronsArr[1]+neuronsArr[2] #initial hexcolorcode
 
+#bad at coding setup
+tseen = 1
+tpurp = 0
+
 #logic funcs
-def TrainModel(learningrate = 0.1, epochs = 500, path = None): #literally pulled outa my ass i have no clue if theyre too big or too small
+def TrainModel(learningrate = 0.1, epochs = 5000, path = None): #literally pulled outa my ass i have no clue if theyre too big or too small
     print("Training...") #so i know if i actually ran the damn thing
     if path is None:
-        path = BASE_DIR / "data" /  "colorblinddata.csv"
+        path = BASE_DIR / "data" /  "data.csv"
     with open(path, "r") as data:
         trainingdata = []
         for line in data:
@@ -53,67 +60,86 @@ def CheckIt(hexcode, weights, bias): #using trained weights to make a guess
     else:
         return 0
 
-
-#main window setup
-root = Tk()
-root.title("PerceptPurple")
-root.geometry("512x340") 
-root.resizable(False,False)
-root.configure(background="#1c0030")
-
-#window frame
-mainframe = Frame(root, width=512, height=340, background="#1c0030")
-mainframe.grid()
-mainframe.grid_columnconfigure(0, weight=1)
-
-#splash screen
-canvas = Canvas(mainframe,bd=0,highlightthickness=0, width=512, height=200)
-canvas.grid(row=0,column=0)
-splash = PhotoImage(file=splashpath)
-canvas.create_image(0,0, image=splash, anchor = "nw")
-
-#button frame
-buttonframe = Frame(mainframe,width=512, height=60, bg="#1c0030", bd=0, highlightthickness=0)
-buttonframe.grid(row=1,column=0, sticky="nsew")
-buttonframe.grid_columnconfigure(0, weight=1)
-buttonframe.grid_columnconfigure(1, weight=1)
-
-#button funcs
-def TrainButton():
-    Training(hexColor)
-
-def CompareButton():
-    traintuple = TrainModel()
-    Comparing(traintuple)
-
 def Training(hexColor):
     def IsPurple(): #when Yes is clicked
+        global tseen, tpurp
+        tseen += 1
+        tpurp += 1
         WriteAndRegen(True)
 
     def NotPurple(): #when No is Clicked
+        global tseen
+        tseen += 1
         WriteAndRegen(False)
 
-    def WriteAndRegen(isPurple):
-        global neuronsArr, hexColor
-        with open(BASE_DIR / "data" /"colorblinddata.csv",'a') as file:
+    def WriteAndRegen(isPurple): #this function is doing too much, i know
+        global neuronsArr, hexColor, tseen, tpurp #holy globals i need a class
+        with open(BASE_DIR / "data" /"data.csv",'a') as file: 
             file.write(f"{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, {int(isPurple)}\n")
+
+        #regenerate the random color
         neuronsArr = [random.randbytes(1).hex() for _ in range(3)]
         hexColor = "#"+neuronsArr[0]+neuronsArr[1]+neuronsArr[2]
+
+        #literally all this fat fuckin chud of a line does is calculate the luminance of the color to see if text should be black or white :sob:
+        if ((int(neuronsArr[0],16)/255)*0.2126)+((int(neuronsArr[1],16)/255)*0.7152)+((int(neuronsArr[2],16)/255)*0.0722) > 0.5: 
+            ttextcolor = "#121212"
+        else:
+            ttextcolor = "#eef0f2"
+
+        #update text (STOP TELLING ME I NEED A CLASS I KNOW)
+        tcolorrect.itemconfigure("thex", fill=ttextcolor, text=hexColor)
         tcolorrect.itemconfigure("trect", fill=hexColor)
-   
+        tcolorrect.itemconfigure("tseen", text=f"Seen: {tseen}", fill=ttextcolor)
+        tcolorrect.itemconfigure("tpurp", text=f"Purple: {tpurp}",fill=ttextcolor)
+    
+
+   #train window setup
     trainwindow = Toplevel(root)
     trainwindow.title("Training...")
-    trainframe = Frame(trainwindow, width=256, height=384)
+    trainwindow.resizable(False, False)
+    trainwindow.configure(background="#121212")
+
+    #train window frame
+    trainframe = Frame(trainwindow, width=512, height=260, background="#121212")
     trainframe.grid()
-    tcolorrect = Canvas(trainframe, width=256, height=128)
+    trainframe.grid_columnconfigure(0, weight=1)
+
+    #train canvas
+    tcolorrect = Canvas(trainframe, width=512, height=200,bd=0,highlightthickness=0)
     tcolorrect.grid(row=0, column=0)
-    tcolorrect.create_rectangle(0, 0, 256, 128, fill=hexColor, tags="trect")
-    tchoiceframe = Frame(trainframe)
-    tchoiceframe.grid(row=1, column=0)
-    tbYes = Button(tchoiceframe, text="Yes", command=IsPurple)
-    tbNo = Button(tchoiceframe, text="No", command=NotPurple)
-    tbYes.grid(row=0, column=0)
-    tbNo.grid(row=0, column=1)   
+
+    #train rect (haha get it)
+    tcolorrect.create_rectangle(-1, -1, 513, 201, fill=hexColor, tags="trect")
+
+    #train hex text color (who tf knew luminance was so complicated)
+    if ((int(neuronsArr[0],16)/255)*0.2126)+((int(neuronsArr[1],16)/255)*0.7152)+((int(neuronsArr[2],16)/255)*0.0722) > 0.5:
+        ttextcolor =  "#121212"
+    else:
+        ttextcolor =  "#eef0f2"
+
+    #text setup
+    tcolorrect.create_text(24, 0, text=f"Seen: {tseen}", anchor="nw", fill=ttextcolor, font=('League Spartan Medium', 24), tags="tseen")
+    tcolorrect.create_text(256, 0, text=f"Purple: {tpurp}", anchor="n", fill=ttextcolor, font=('League Spartan Medium', 24), tags="tpurp")
+    tcolorrect.create_text(488, 0, text=hexColor, anchor="ne", fill=ttextcolor, font=('League Spartan Medium', 24), tags="thex")
+
+    #train choice button frame
+    tchoiceframe = Frame(trainframe, width=512, height=60, bg="#121212", bd=0, highlightthickness=5, highlightbackground="#0A0A0A")
+    tchoiceframe.grid(row=1, column=0, sticky="nsew")
+    tchoiceframe.grid_columnconfigure(0, weight=1)
+    tchoiceframe.grid_columnconfigure(1, weight=1)
+
+    #yes button
+    tbyesimg = PhotoImage(file=yespath)
+    tbYes = Button(tchoiceframe, image=tbyesimg, bg="#121212", activebackground="#121212", bd=0, highlightthickness=0, padx=0, pady=0, command=IsPurple)
+    tbYes.image = tbyesimg
+    tbYes.grid(row=0, column=0, sticky="nsew", padx=0, pady=10)
+
+    #no button
+    tbnoimg = PhotoImage(file=nopath)
+    tbNo = Button(tchoiceframe, image=tbnoimg, bg="#121212", activebackground="#121212", bd=0, highlightthickness=0, padx=0, pady=0, command=NotPurple)
+    tbNo.image = tbnoimg
+    tbNo.grid(row=0, column=1, sticky="nsew", padx=0, pady=10)   
 
 def Comparing(traintuple):
     def IsPurple(): #when Yes is clicked
@@ -124,7 +150,7 @@ def Comparing(traintuple):
 
     def CheckAndRegen(isPurple):
         global neuronsArr, hexColor
-        with open(BASE_DIR / "data" /"colorblinddata.csv",'a') as file:
+        with open(BASE_DIR / "data" /"data.csv",'a') as file:
             file.write(f"{neuronsArr[0]}, {neuronsArr[1]}, {neuronsArr[2]}, {hexColor}, {int(isPurple)}\n")
         if isPurple:
             print("yuh")
@@ -155,6 +181,37 @@ def Comparing(traintuple):
     cbNo = Button(cchoiceframe, text="No", command=NotPurple)
     cbYes.grid(row=0, column=0)
     cbNo.grid(row=0, column=1)  
+
+#main window setup
+root = Tk()
+root.title("PerceptPurple")
+root.resizable(False,False)
+root.configure(background="#1c0030")
+
+#window frame
+mainframe = Frame(root, width=512, height=260, background="#1c0030")
+mainframe.grid()
+mainframe.grid_columnconfigure(0, weight=1)
+
+#splash screen
+canvas = Canvas(mainframe,bd=0,highlightthickness=0, width=512, height=200)
+canvas.grid(row=0,column=0)
+splash = PhotoImage(file=splashpath)
+canvas.create_image(0,0, image=splash, anchor = "nw")
+
+#button frame
+buttonframe = Frame(mainframe,width=512, height=60, bg="#1c0030", bd=0, highlightthickness=0)
+buttonframe.grid(row=1,column=0, sticky="nsew")
+buttonframe.grid_columnconfigure(0, weight=1)
+buttonframe.grid_columnconfigure(1, weight=1)
+
+#button funcs
+def TrainButton():
+    Training(hexColor)
+
+def CompareButton():
+    traintuple = TrainModel()
+    Comparing(traintuple)
 
 #train button
 trainimg = PhotoImage(file=trainpath)
